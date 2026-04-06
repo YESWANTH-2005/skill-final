@@ -36,11 +36,13 @@ const API_BASE_URL = (
   window.SKILLPATH_API_BASE ||
   inferredLocalApiBase
 ).replace(/\/$/, "");
+const REQUEST_TIMEOUT_MS = 12000;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const AUTH_TOKEN_KEY = "srs_auth_token";
 let profileSyncTimer = null;
 let profileSyncInFlight = false;
 let profileSyncQueued = false;
+let backendWarmupStarted = false;
 
 function isValidEmail(email) {
   return EMAIL_REGEX.test(String(email || "").trim());
@@ -54,10 +56,28 @@ async function requestJSON(path, options = {}) {
     headers.Authorization = `Bearer ${state.authToken}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, REQUEST_TIMEOUT_MS);
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal
+    });
+  } catch (error) {
+    if (error.name === "AbortError") {
+      const timeoutError = new Error("Request timed out. Please try again.");
+      timeoutError.status = 408;
+      throw timeoutError;
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
   const text = await response.text();
 
   let data = null;
@@ -671,12 +691,21 @@ async function syncProfileNow(silent = false) {
   }
 }
 
-function scheduleProfileSync(delay = 600) {
+function scheduleProfileSync(delay = 2500) {
   if (!state.user) return;
   clearTimeout(profileSyncTimer);
   profileSyncTimer = setTimeout(() => {
     syncProfileNow(true);
   }, delay);
+}
+
+function warmUpBackend() {
+  if (backendWarmupStarted || !API_BASE_URL || API_BASE_URL.includes("localhost")) return;
+  backendWarmupStarted = true;
+
+  fetch(`${API_BASE_URL}/api/health`, { method: "GET" }).catch(() => {
+    // Best-effort warmup only.
+  });
 }
 
 // Core catalog constants are in js/data.js
@@ -2072,8 +2101,7 @@ function showToast(msg, type='') {
 }
 
 // ─── INIT ─────────────────────────────────────────────
-renderExplore();
-
+warmUpBackend();
 bootstrapSession();
 renderAuthSubmitState();
 
