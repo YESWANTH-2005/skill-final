@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Skill Recommendation System — AI-Powered Skill Recommendations</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#F9F6F0;--ink:#1A1714;--ink-soft:#5A5550;--ink-mute:#9A9590;
+  --gold:#C9963A;--gold-light:#F5E9D3;--gold-dark:#8A6420;
+  --teal:#2A7A6A;--teal-light:#D4EDE8;--teal-dark:#1A5248;
+  --rose:#C0434A;--rose-light:#F5E0E1;--rose-dark:#7A2228;
+  --violet:#5A3FA0;--violet-light:#EAE5F5;--violet-dark:#3C2B80;
+  --border:rgba(26,23,20,0.10);--border-strong:rgba(26,23,20,0.18);
+  --shadow:0 2px 16px rgba(26,23,20,0.07);--shadow-lg:0 8px 40px rgba(26,23,20,0.13);
+  --radius:14px;--radius-sm:8px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;overflow-x:hidden}
+
+/* ─── NAV ─── */
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 2.5rem;border-bottom:1px solid var(--border);background:rgba(249,246,240,0.92);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
+.logo{font-family:'DM Serif Display',serif;font-size:1.45rem;color:var(--ink);letter-spacing:-0.4px;cursor:pointer}
+.logo span{color:var(--gold)}
+.nav-center{display:flex;gap:2rem}
+.nav-center a{font-size:0.88rem;font-weight:500;color:var(--ink-soft);text-decoration:none;transition:color .2s;cursor:pointer}
+.nav-center a:hover{color:var(--ink)}
+.nav-right{display:flex;align-items:center;gap:0.75rem}
+.btn-ghost{background:transparent;border:1.5px solid var(--border-strong);color:var(--ink);padding:0.5rem 1.1rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-ghost:hover{background:rgba(26,23,20,0.05)}
+.btn-dark{background:var(--ink);color:var(--cream);border:none;padding:0.5rem 1.2rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:500;cursor:pointer;transition:opacity .15s}
+.btn-dark:hover{opacity:0.82}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:var(--gold-light);color:var(--gold-dark);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;cursor:pointer;border:2px solid var(--gold)}
+
+/* ─── PAGES ─── */
+.page{display:none;animation:fadeIn .3s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── HERO ─── */
+.hero{max-width:860px;margin:0 auto;padding:5rem 2rem 3.5rem;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--gold-light);color:var(--gold-dark);font-size:0.75rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:.35rem .9rem;border-radius:50px;margin-bottom:1.5rem}
+.hero-badge::before{content:'';width:6px;height:6px;background:var(--gold);border-radius:50%}
+.hero h1{font-family:'DM Serif Display',serif;font-size:clamp(2.4rem,5vw,3.8rem);line-height:1.1;letter-spacing:-1px;margin-bottom:1.25rem}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero p{font-size:1.05rem;color:var(--ink-soft);line-height:1.7;max-width:520px;margin:0 auto 2.5rem}
+.hero-actions{display:flex;gap:.9rem;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--ink);color:var(--cream);border:none;padding:.85rem 2rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:500;cursor:pointer;transition:transform .15s,opacity .15s}
+.btn-primary:hover{opacity:.85;transform:translateY(-1px)}
+.btn-secondary{background:transparent;color:var(--ink);border:1.5px solid var(--border-strong);padding:.85rem 2rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:500;cursor:pointer;transition:background .15s,transform .15s}
+.btn-secondary:hover{background:rgba(26,23,20,.05);transform:translateY(-1px)}
+
+/* ─── STATS ─── */
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);border-radius:var(--radius);background:#fff;overflow:hidden;margin:0 2rem 3rem}
+.stat-cell{padding:1.6rem 1.25rem;text-align:center;border-right:1px solid var(--border)}
+.stat-cell:last-child{border-right:none}
+.stat-num{font-family:'DM Serif Display',serif;font-size:2.1rem;color:var(--ink);letter-spacing:-1px;display:block}
+.stat-label{font-size:.8rem;color:var(--ink-soft);margin-top:.2rem}
+
+/* ─── SECTION ─── */
+.section{max-width:1080px;margin:0 auto;padding:2.5rem 2rem}
+.section-label{font-size:.76rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:.65rem}
+.section-title{font-family:'DM Serif Display',serif;font-size:clamp(1.6rem,3vw,2.1rem);letter-spacing:-.4px;margin-bottom:.45rem}
+.section-sub{color:var(--ink-soft);font-size:.95rem;line-height:1.6;margin-bottom:1.75rem}
+
+/* ─── QUIZ ─── */
+.quiz-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:2.5rem;box-shadow:var(--shadow)}
+.quiz-step{display:none}
+.quiz-step.active{display:block}
+.progress-bar{display:flex;gap:6px;margin-bottom:2rem}
+.progress-dot{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background .3s}
+.progress-dot.done{background:var(--gold)}
+.progress-dot.active{background:var(--ink)}
+.quiz-q{font-family:'DM Serif Display',serif;font-size:1.45rem;margin-bottom:.45rem;letter-spacing:-.3px}
+.quiz-sub{font-size:.88rem;color:var(--ink-soft);margin-bottom:1.65rem}
+.options-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.7rem;margin-bottom:1.75rem}
+.option-btn{background:var(--cream);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:.9rem 1.1rem;text-align:left;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;color:var(--ink);transition:all .15s;position:relative}
+.option-btn:hover{border-color:var(--gold);background:var(--gold-light)}
+.option-btn.selected{border-color:var(--gold);background:var(--gold-light);color:var(--gold-dark)}
+.option-btn.selected::after{content:'✓';position:absolute;top:9px;right:11px;font-size:.72rem;color:var(--gold-dark)}
+.option-icon{font-size:1.3rem;display:block;margin-bottom:.45rem}
+.quiz-nav{display:flex;justify-content:space-between;align-items:center;margin-top:.5rem}
+.step-counter{font-size:.8rem;color:var(--ink-mute);font-weight:500}
+
+/* ─── RESULTS ─── */
+.results-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem}
+.search-bar{display:flex;align-items:center;background:#fff;border:1.5px solid var(--border-strong);border-radius:50px;padding:.6rem 1.15rem;gap:.7rem;width:320px}
+.search-bar input{flex:1;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--ink);background:transparent}
+.search-bar input::placeholder{color:var(--ink-mute)}
+.filter-chips{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.chip{padding:.38rem .95rem;border-radius:50px;border:1.5px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;color:var(--ink-soft);cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--gold);color:var(--gold-dark)}
+.chip.active{border-color:var(--gold);background:var(--gold-light);color:var(--gold-dark)}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));gap:1.1rem}
+.skill-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.6rem;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;cursor:pointer;position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:100%}
+.skill-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.skill-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem}
+.skill-icon-wrap{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.35rem}
+.match-badge{font-size:.75rem;font-weight:600;padding:.28rem .6rem;border-radius:50px}
+.match-high{background:var(--teal-light);color:var(--teal-dark)}
+.match-mid{background:var(--gold-light);color:var(--gold-dark)}
+.match-low{background:#f0f0ee;color:var(--ink-soft)}
+.skill-card h3{font-family:'DM Serif Display',serif;font-size:1.18rem;letter-spacing:-.3px;margin-bottom:.35rem}
+.skill-card p{font-size:.84rem;color:var(--ink-soft);line-height:1.6;margin-bottom:1.1rem}
+.skill-tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:1.1rem}
+.tag{font-size:.72rem;font-weight:500;padding:.22rem .6rem;border-radius:50px;background:var(--cream);color:var(--ink-soft);border:1px solid var(--border)}
+.skill-meta{display:flex;gap:1.1rem;font-size:.78rem;color:var(--ink-mute);padding-top:.9rem;border-top:1px solid var(--border);align-items:center;justify-content:space-between;margin-top:auto}
+.difficulty-bar{display:flex;gap:3px}
+.diff-dot{width:7px;height:7px;border-radius:50%;background:var(--border)}
+.diff-dot.filled{background:var(--gold)}
+.save-btn{background:none;border:none;cursor:pointer;font-size:1.1rem;transition:transform .15s;padding:2px}
+.save-btn:hover{transform:scale(1.2)}
+.enroll-btn{display:block;width:100%;margin-top:1.1rem;padding:.65rem;background:var(--ink);color:var(--cream);border:none;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:opacity .15s}
+.enroll-btn:hover{opacity:.82}
+.enroll-btn.enrolled{background:var(--teal);cursor:default}
+
+/* ─── PATHS ─── */
+.paths-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;margin-top:1.5rem}
+.path-card{border-radius:var(--radius);padding:1.65rem;display:flex;flex-direction:column;gap:.9rem;transition:transform .2s;cursor:pointer}
+.path-card:hover{transform:translateY(-3px)}
+.path-card-gold{background:var(--gold-light);border:1px solid rgba(201,150,58,.25)}
+.path-card-teal{background:var(--teal-light);border:1px solid rgba(42,122,106,.2)}
+.path-card-violet{background:var(--violet-light);border:1px solid rgba(90,63,160,.2)}
+.path-card-rose{background:var(--rose-light);border:1px solid rgba(192,67,74,.2)}
+.path-emoji{font-size:1.9rem;line-height:1}
+.path-card h3{font-family:'DM Serif Display',serif;font-size:1.1rem;letter-spacing:-.3px;margin-bottom:.2rem}
+.path-card p{font-size:.83rem;color:var(--ink-soft);line-height:1.55}
+.path-count{font-size:.76rem;font-weight:600;color:var(--ink-mute);margin-top:auto}
+
+/* ─── DASHBOARD ─── */
+.dashboard-grid{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;align-items:start}
+.sidebar-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow)}
+.user-profile-big{text-align:center;padding-bottom:1.25rem;border-bottom:1px solid var(--border);margin-bottom:1.25rem}
+.avatar-big{width:68px;height:68px;border-radius:50%;background:var(--gold-light);color:var(--gold-dark);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;margin:0 auto 0.75rem;border:3px solid var(--gold)}
+.user-profile-big h3{font-family:'DM Serif Display',serif;font-size:1.2rem;margin-bottom:.2rem}
+.user-profile-big p{font-size:.8rem;color:var(--ink-soft)}
+.sidebar-nav{display:flex;flex-direction:column;gap:.25rem}
+.sidebar-link{display:flex;align-items:center;gap:.65rem;padding:.65rem .85rem;border-radius:var(--radius-sm);font-size:.88rem;font-weight:500;color:var(--ink-soft);cursor:pointer;transition:all .15s;border:none;background:none;font-family:'DM Sans',sans-serif;width:100%;text-align:left}
+.sidebar-link:hover{background:var(--cream);color:var(--ink)}
+.sidebar-link.active{background:var(--gold-light);color:var(--gold-dark)}
+.sidebar-icon{font-size:1rem;width:20px;text-align:center}
+.main-content{display:flex;flex-direction:column;gap:1.25rem}
+.content-panel{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.65rem;box-shadow:var(--shadow)}
+.content-panel h2{font-family:'DM Serif Display',serif;font-size:1.35rem;margin-bottom:1.1rem;letter-spacing:-.3px}
+.progress-card{display:flex;align-items:center;gap:1rem;padding:.9rem;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:.65rem;transition:background .15s;cursor:pointer}
+.progress-card:hover{background:var(--cream)}
+.progress-icon{font-size:1.5rem;min-width:40px;text-align:center}
+.progress-info{flex:1}
+.progress-info strong{display:block;font-size:.88rem;font-weight:600;margin-bottom:.3rem}
+.progress-bar-outer{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-bar-inner{height:100%;background:var(--gold);border-radius:3px;transition:width .6s ease}
+.progress-pct{font-size:.75rem;color:var(--ink-mute);margin-top:.25rem}
+.saved-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.9rem}
+.saved-item{padding:.9rem 1rem;background:var(--cream);border-radius:var(--radius-sm);border:1px solid var(--border);cursor:pointer;transition:border-color .15s}
+.saved-item:hover{border-color:var(--gold)}
+.saved-item h4{font-size:.88rem;font-weight:600;margin-bottom:.2rem}
+.saved-item p{font-size:.76rem;color:var(--ink-soft)}
+.remove-saved{font-size:.7rem;color:var(--rose);cursor:pointer;margin-top:.4rem;display:inline-block}
+.activity-list{display:flex;flex-direction:column;gap:.6rem}
+.activity-item{display:flex;align-items:flex-start;gap:.75rem;padding:.7rem;border-radius:var(--radius-sm);background:var(--cream)}
+.activity-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);margin-top:5px;min-width:8px}
+.activity-text{font-size:.84rem;color:var(--ink-soft);line-height:1.5}
+.activity-time{font-size:.73rem;color:var(--ink-mute);margin-top:.15rem}
+.planner-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+.planner-card{background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem}
+.planner-card h3{font-size:.95rem;font-weight:700;margin-bottom:.35rem}
+.planner-card p{font-size:.8rem;color:var(--ink-soft);line-height:1.5;margin-bottom:.7rem}
+.planner-actions{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:.65rem}
+.planner-list{display:flex;flex-direction:column;gap:.5rem}
+.planner-item{padding:.65rem .75rem;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem}
+.planner-item.done{opacity:.72}
+.planner-item strong{display:block;font-size:.84rem}
+.planner-item span{font-size:.74rem;color:var(--ink-mute)}
+.planner-item button{border:none;background:var(--teal);color:#fff;border-radius:50px;padding:.25rem .6rem;font-size:.7rem;cursor:pointer}
+.gap-list{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.65rem}
+.gap-pill{font-size:.72rem;padding:.2rem .55rem;border-radius:50px;background:#fff;border:1px solid var(--border);color:var(--ink-soft)}
+.insight-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-bottom:.9rem}
+.insight-metric{background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.8rem}
+.insight-metric strong{display:block;font-size:1rem}
+.insight-metric span{font-size:.75rem;color:var(--ink-mute)}
+.history-list{display:flex;flex-direction:column;gap:.55rem}
+.history-item{background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.7rem}
+.history-item strong{font-size:.82rem}
+.history-item p{font-size:.76rem;color:var(--ink-soft);margin-top:.2rem}
+
+/* ─── AUTH ─── */
+.auth-overlay{position:fixed;inset:0;background:rgba(26,23,20,.55);z-index:300;display:none;align-items:center;justify-content:center;padding:1.5rem}
+.auth-overlay.open{display:flex}
+.auth-box{background:#fff;border-radius:var(--radius);width:100%;max-width:420px;padding:2.5rem;box-shadow:var(--shadow-lg);animation:slideUp .25s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.auth-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.75rem}
+.auth-tab{flex:1;padding:.7rem;text-align:center;font-size:.88rem;font-weight:500;color:var(--ink-soft);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif}
+.auth-tab.active{color:var(--ink);border-bottom-color:var(--gold)}
+.form-group{margin-bottom:1.1rem}
+.form-group label{display:block;font-size:.82rem;font-weight:500;margin-bottom:.45rem;color:var(--ink-soft)}
+.form-group input{width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .15s;background:var(--cream);color:var(--ink)}
+.form-group input:focus{border-color:var(--gold)}
+.auth-submit{width:100%;padding:.8rem;background:var(--ink);color:var(--cream);border:none;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:500;cursor:pointer;margin-top:.5rem;transition:opacity .15s}
+.auth-submit:hover{opacity:.85}
+.auth-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--ink-mute)}
+.auth-box{position:relative}
+
+/* ─── MODAL ─── */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,23,20,.55);z-index:200;display:none;align-items:center;justify-content:center;padding:1.5rem;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:var(--radius);width:100%;max-width:580px;padding:2.5rem;box-shadow:var(--shadow-lg);animation:slideUp .25s ease;margin:auto}
+.modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.4rem}
+.modal-close{background:none;border:none;font-size:1.25rem;color:var(--ink-mute);cursor:pointer;line-height:1}
+.modal h2{font-family:'DM Serif Display',serif;font-size:1.5rem;letter-spacing:-.3px}
+.roadmap-step{display:flex;gap:.9rem;align-items:flex-start;margin-bottom:.9rem}
+.step-num{min-width:26px;height:26px;background:var(--gold-light);color:var(--gold-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.74rem;font-weight:700;margin-top:2px}
+.step-text span{font-size:.8rem;color:var(--ink-soft)}
+
+.resource-scrollbox{max-height:260px;overflow-y:auto;padding:.85rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--cream);margin-bottom:.75rem}
+.resource-quiz-wrap{margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--border)}
+.resource-feedback{font-size:.8rem;margin-top:.55rem;min-height:1.1rem}
+
+/* ─── AI CHAT ─── */
+.ai-chat-container{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;height:480px}
+.chat-header{padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem}
+.ai-dot{width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.2)}
+.chat-header strong{font-size:.92rem}
+.chat-header span{font-size:.78rem;color:var(--ink-soft)}
+.chat-messages{flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:.9rem;scroll-behavior:smooth}
+.msg{max-width:82%;padding:.75rem 1rem;border-radius:12px;font-size:.88rem;line-height:1.6}
+.msg.ai{background:var(--cream);color:var(--ink);align-self:flex-start;border:1px solid var(--border)}
+.msg.user{background:var(--ink);color:var(--cream);align-self:flex-end}
+.msg.typing{color:var(--ink-mute)}
+.chat-input-row{padding:1rem 1.25rem;border-top:1px solid var(--border);display:flex;gap:.65rem}
+.chat-input-row input{flex:1;border:1.5px solid var(--border);border-radius:50px;padding:.6rem 1.1rem;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;background:var(--cream);color:var(--ink)}
+.chat-input-row input:focus{border-color:var(--gold)}
+.chat-send{background:var(--ink);color:var(--cream);border:none;border-radius:50px;padding:.6rem 1.2rem;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:500;cursor:pointer;transition:opacity .15s}
+.chat-send:hover{opacity:.82}
+.chat-send:disabled{opacity:.4;cursor:not-allowed}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--ink);color:var(--cream);padding:.8rem 1.4rem;border-radius:50px;font-size:.85rem;font-weight:500;box-shadow:var(--shadow-lg);z-index:500;transform:translateY(80px);opacity:0;transition:all .3s ease;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{background:var(--teal)}
+.toast.error{background:var(--rose)}
+
+/* ─── TESTIMONIALS ─── */
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1rem;margin-top:1.5rem}
+.testi-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.4rem;box-shadow:var(--shadow)}
+.testi-quote{font-size:.88rem;color:var(--ink-soft);line-height:1.7;margin-bottom:1.1rem}
+.testi-author{display:flex;align-items:center;gap:.75rem}
+.avatar-sm{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700}
+.testi-name{font-size:.84rem;font-weight:600;color:var(--ink)}
+.testi-role{font-size:.74rem;color:var(--ink-mute)}
+
+/* ─── FOOTER ─── */
+footer{border-top:1px solid var(--border);padding:1.75rem 2.5rem;display:flex;justify-content:space-between;align-items:center;margin-top:3rem;flex-wrap:wrap;gap:1rem}
+.footer-logo{font-family:'DM Serif Display',serif;font-size:1.1rem}
+.footer-logo span{color:var(--gold)}
+footer p{font-size:.8rem;color:var(--ink-mute)}
+.footer-links{display:flex;gap:1.25rem}
+.footer-links a{font-size:.8rem;color:var(--ink-mute);text-decoration:none;cursor:pointer}
+.footer-links a:hover{color:var(--ink)}
+
+/* ─── MISC ─── */
+.empty-state{text-align:center;padding:3rem;color:var(--ink-mute)}
+.empty-state .es-icon{font-size:2.5rem;margin-bottom:.75rem}
+.empty-state p{font-size:.9rem}
+.loading-dots::after{content:'...';animation:dots 1.2s infinite}
+@keyframes dots{0%,100%{content:'...'}33%{content:'.'}66%{content:'...'}}
+.badge-new{position:absolute;top:1rem;right:1rem;background:var(--rose);color:#fff;font-size:.67rem;font-weight:700;padding:.2rem .5rem;border-radius:50px;letter-spacing:.05em}
+
+@media(max-width:720px){
+  nav{padding:1rem 1.1rem}
+  .nav-center{display:none}
+  .stats-strip{grid-template-columns:repeat(2,1fr)}
+  .stat-cell:nth-child(2){border-right:none}
+  .stat-cell:nth-child(3){border-top:1px solid var(--border)}
+  .dashboard-grid{grid-template-columns:1fr}
+  .planner-grid{grid-template-columns:1fr}
+  .insight-metrics{grid-template-columns:1fr}
+  .search-bar{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- AUTH OVERLAY -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-box">
+    <button class="auth-close" onclick="closeAuth()">✕</button>
+    <div style="font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:1.5rem;letter-spacing:-.3px">
+      Welcome to Skill <span style="color:var(--gold)">Recommendation</span> System
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuth('login')">Sign in</button>
+      <button class="auth-tab" onclick="switchAuth('signup')">Create account</button>
+    </div>
+    <div id="auth-login">
+      <div class="form-group"><label>Email address</label><input type="email" id="login-email" placeholder="you@example.com" /></div>
+      <div class="form-group"><label>Password</label><input type="password" id="login-pw" placeholder="••••••••" /></div>
+      <button class="auth-submit" onclick="doLogin()">Sign in →</button>
+    </div>
+    <div id="auth-signup" style="display:none">
+      <div class="form-group"><label>Full name</label><input type="text" id="signup-name" placeholder="Your name" /></div>
+      <div class="form-group"><label>Email address</label><input type="email" id="signup-email" placeholder="you@example.com" /></div>
+      <div class="form-group"><label>Password</label><input type="password" id="signup-pw" placeholder="Create a password" /></div>
+      <button class="auth-submit" onclick="doSignup()">Create account →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PATH MODAL -->
+<div class="modal-overlay" id="path-modal" onclick="closePathModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title"></h2>
+      <button class="modal-close" onclick="document.getElementById('path-modal').classList.remove('open')">✕</button>
+    </div>
+    <p id="modal-desc" style="font-size:.88rem;color:var(--ink-soft);margin-bottom:1.5rem;line-height:1.6"></p>
+    <div id="modal-roadmap"></div>
+    <button class="btn-primary" style="width:100%;margin-top:1.5rem;text-align:center" id="modal-enroll-btn" onclick="enrollPath()">Enroll in this path →</button>
+  </div>
+</div>
+
+<!-- SKILL DETAIL MODAL -->
+<div class="modal-overlay" id="skill-modal" onclick="closeSkillModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="skill-modal-title"></h2>
+      <button class="modal-close" onclick="document.getElementById('skill-modal').classList.remove('open')">✕</button>
+    </div>
+    <div id="skill-modal-body"></div>
+  </div>
+</div>
+
+<!-- LESSON MODAL -->
+<div class="modal-overlay" id="lesson-modal" onclick="closeLessonModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="lesson-modal-title">Course Lesson</h2>
+      <button class="modal-close" onclick="document.getElementById('lesson-modal').classList.remove('open')">✕</button>
+    </div>
+    <p id="lesson-modal-summary" style="font-size:.88rem;color:var(--ink-soft);margin-bottom:1rem;line-height:1.6"></p>
+    <div class="planner-list" id="lesson-modal-list"></div>
+    <button class="btn-primary" style="width:100%;margin-top:1rem;text-align:center" id="lesson-complete-btn" onclick="completeCurrentLesson()">Complete Current Lesson</button>
+  </div>
+</div>
+
+
+<!-- LEARNING RESOURCE MODAL -->
+<div class="modal-overlay" id="resource-modal" onclick="closeResourceModal(event)">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-header">
+      <div>
+        <h2 id="resource-modal-title">Learning Resource</h2>
+        <p id="resource-modal-subtitle" style="font-size:.82rem;color:var(--ink-soft);margin-top:.35rem"></p>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('resource-modal').classList.remove('open')">X</button>
+    </div>
+    <div class="resource-scrollbox" id="resource-scrollbox" onscroll="handleResourceScroll()">
+      <div id="resource-content"></div>
+    </div>
+    <p id="resource-scroll-status" style="font-size:.78rem;color:var(--ink-mute);margin-bottom:.25rem"></p>
+    <div class="resource-quiz-wrap">
+      <p id="resource-quiz-question" style="font-weight:600;margin-bottom:.6rem"></p>
+      <div class="options-grid" id="resource-quiz-options"></div>
+      <button class="btn-primary" id="resource-quiz-submit" style="margin-top:.45rem" onclick="submitResourceQuiz()">Submit Quiz</button>
+      <p class="resource-feedback" id="resource-quiz-feedback"></p>
+    </div>
+  </div>
+</div>
+
+<!-- CERTIFICATE MODAL -->
+<div class="modal-overlay" id="certificate-modal" onclick="closeCertificateModal(event)">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <h2>Course Certificate</h2>
+      <button class="modal-close" onclick="document.getElementById('certificate-modal').classList.remove('open')">X</button>
+    </div>
+    <div style="border:2px solid var(--gold);border-radius:var(--radius-sm);padding:1.5rem;background:var(--cream)">
+      <p style="font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-mute);margin-bottom:.75rem">Certificate of Completion</p>
+      <p style="font-size:.9rem;color:var(--ink-soft)">This certifies that</p>
+      <p id="certificate-learner" style="font-family:'DM Serif Display',serif;font-size:1.9rem;margin:.35rem 0 .55rem"></p>
+      <p style="font-size:.9rem;color:var(--ink-soft)">has successfully completed</p>
+      <p id="certificate-course" style="font-size:1.15rem;font-weight:700;margin:.4rem 0"></p>
+      <p style="font-size:.85rem;color:var(--ink-soft)">with 100% progress and lesson completion requirements.</p>
+      <p style="font-size:.78rem;color:var(--ink-mute);margin-top:.85rem">Issued on <span id="certificate-date"></span> | ID: <span id="certificate-id"></span></p>
+    </div>
+    <button class="btn-primary" style="width:100%;margin-top:1rem" onclick="downloadCertificate()">Download Certificate</button>
+  </div>
+</div>
+<!-- JOB LEARNING PATH MODAL -->
+<div class="modal-overlay" id="job-learning-modal" onclick="closeJobLearningModal(event)">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-header">
+      <div>
+        <h2 id="job-learning-title">Job Learning Path</h2>
+        <p id="job-learning-sub" style="font-size:.84rem;color:var(--ink-soft);margin-top:.35rem"></p>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('job-learning-modal').classList.remove('open')">X</button>
+    </div>
+    <div style="margin-bottom:1rem">
+      <div style="font-size:.78rem;color:var(--ink-mute);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.6rem">Necessary skills to learn</div>
+      <div class="skill-tags" id="job-learning-required"></div>
+    </div>
+    <div id="job-learning-steps"></div>
+    <button class="btn-primary" id="job-learning-enroll-btn" style="width:100%;margin-top:1rem">Start this learning path</button>
+  </div>
+</div>
+<!-- NAV -->
+<nav>
+  <div class="logo" onclick="showPage('home')">Skill <span>Recommendation</span> System</div>
+  <div class="nav-center">
+    <a onclick="showPage('home')">Home</a>
+    <a onclick="showPage('explore')">Explore</a>
+    <a onclick="showPage('paths-page')">Paths</a>
+    <a onclick="showPage('ai-advisor')">AI Advisor</a>
+    <a onclick="requireAuth('dashboard')">Dashboard</a>
+  </div>
+  <div class="nav-right" id="nav-right">
+    <button class="btn-ghost" onclick="openAuth('login')">Sign in</button>
+    <button class="btn-dark" onclick="openAuth('signup')">Get started</button>
+  </div>
+</nav>
+
+<!-- ════════════════════ HOME PAGE ════════════════════ -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-badge">AI-Powered Recommendations</div>
+    <h1>Discover skills <em>built</em><br>for your future</h1>
+    <p>Answer a few questions about your goals. Our AI maps the perfect learning path — curated just for you.</p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="showPage('quiz-page')">Start Assessment →</button>
+      <button class="btn-secondary" onclick="showPage('explore')">Browse All Skills</button>
+    </div>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat-cell"><span class="stat-num">240+</span><div class="stat-label">Skills available</div></div>
+    <div class="stat-cell"><span class="stat-num">94%</span><div class="stat-label">Placement rate</div></div>
+    <div class="stat-cell"><span class="stat-num">18k</span><div class="stat-label">Learners this month</div></div>
+    <div class="stat-cell"><span class="stat-num">4.9★</span><div class="stat-label">Average rating</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Featured Paths</div>
+    <div class="section-title">Curated journeys to job-ready</div>
+    <div class="section-sub">Every path is a structured sequence — from first lesson to career launch.</div>
+    <div class="paths-row">
+      <div class="path-card path-card-teal" onclick="openPathModal('ai')"><div class="path-emoji">🤖</div><div><h3>AI & Machine Learning</h3><p>From Python basics to deploying production ML models.</p></div><div class="path-count">14 skills · 8–12 months</div></div>
+      <div class="path-card path-card-gold" onclick="openPathModal('design')"><div class="path-emoji">🎨</div><div><h3>Product Design</h3><p>User research, wireframing, Figma mastery, portfolio.</p></div><div class="path-count">10 skills · 5–7 months</div></div>
+      <div class="path-card path-card-violet" onclick="openPathModal('data')"><div class="path-emoji">📊</div><div><h3>Data Analytics</h3><p>SQL, Python, visualization, and storytelling with data.</p></div><div class="path-count">12 skills · 6–9 months</div></div>
+      <div class="path-card path-card-rose" onclick="openPathModal('marketing')"><div class="path-emoji">📣</div><div><h3>Growth Marketing</h3><p>SEO, paid media, email, and CRO — the full funnel.</p></div><div class="path-count">9 skills · 4–6 months</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Community</div>
+    <div class="section-title">Stories from learners</div>
+    <div class="testi-grid">
+      <div class="testi-card"><p class="testi-quote">"Skill Recommendation System suggested SQL and Python when I thought I needed an MBA. Six months later I'm a data analyst with a 40% pay bump."</p><div class="testi-author"><div class="avatar-sm" style="background:#D4EDE8;color:#1A5248">AR</div><div><div class="testi-name">Arjun R.</div><div class="testi-role">Data Analyst, Mumbai</div></div></div></div>
+      <div class="testi-card"><p class="testi-quote">"I was skeptical a quiz could replace career counseling. It surfaced UX writing — a field I'd never heard of — that now pays my bills from anywhere."</p><div class="testi-author"><div class="avatar-sm" style="background:#EAE5F5;color:#3C2B80">SC</div><div><div class="testi-name">Sara C.</div><div class="testi-role">UX Writer, Barcelona</div></div></div></div>
+      <div class="testi-card"><p class="testi-quote">"The AI pushed me toward prompt engineering before it became mainstream. Early mover advantage, perfectly timed."</p><div class="testi-author"><div class="avatar-sm" style="background:#F5E9D3;color:#8A6420">DM</div><div><div class="testi-name">David M.</div><div class="testi-role">AI Consultant, London</div></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ QUIZ PAGE ════════════════════ -->
+<div class="page" id="page-quiz-page">
+  <div class="section">
+    <div class="section-label">Skill Assessment</div>
+    <div class="section-title">Find your perfect fit</div>
+    <div class="section-sub">A 4-step quiz — our AI analyses your answers and surfaces tailored skill recommendations.</div>
+    <div class="quiz-card" id="quiz-card">
+      <div class="progress-bar">
+        <div class="progress-dot active" id="dot-0"></div>
+        <div class="progress-dot" id="dot-1"></div>
+        <div class="progress-dot" id="dot-2"></div>
+        <div class="progress-dot" id="dot-3"></div>
+      </div>
+      <!-- Step 1 -->
+      <div class="quiz-step active" id="step-0">
+        <div class="quiz-q">What's your primary goal right now?</div>
+        <div class="quiz-sub">Choose the one that resonates most</div>
+        <div class="options-grid">
+          <button class="option-btn" onclick="selectOption(this,0,'goal','Switch careers')"><span class="option-icon">💼</span>Switch careers</button>
+          <button class="option-btn" onclick="selectOption(this,0,'goal','Get promoted')"><span class="option-icon">📈</span>Get promoted</button>
+          <button class="option-btn" onclick="selectOption(this,0,'goal','Build a startup')"><span class="option-icon">🚀</span>Build a startup</button>
+          <button class="option-btn" onclick="selectOption(this,0,'goal','Go freelance')"><span class="option-icon">🌍</span>Go freelance</button>
+          <button class="option-btn" onclick="selectOption(this,0,'goal','Personal curiosity')"><span class="option-icon">🔍</span>Personal curiosity</button>
+          <button class="option-btn" onclick="selectOption(this,0,'goal','Generate side income')"><span class="option-icon">💰</span>Side income</button>
+        </div>
+        <div class="quiz-nav"><span class="step-counter">Step 1 of 4</span><button class="btn-primary" onclick="nextStep(1)" id="next-0" disabled>Continue →</button></div>
+      </div>
+      <!-- Step 2 -->
+      <div class="quiz-step" id="step-1">
+        <div class="quiz-q">Which field excites you most?</div>
+        <div class="quiz-sub">Pick your biggest interest today — you can expand later</div>
+        <div class="options-grid">
+          <button class="option-btn" onclick="selectOption(this,1,'field','Technology & Development')"><span class="option-icon">💻</span>Technology & Dev</button>
+          <button class="option-btn" onclick="selectOption(this,1,'field','Design & UX')"><span class="option-icon">🎨</span>Design & UX</button>
+          <button class="option-btn" onclick="selectOption(this,1,'field','Data & Analytics')"><span class="option-icon">📊</span>Data & Analytics</button>
+          <button class="option-btn" onclick="selectOption(this,1,'field','Marketing & Growth')"><span class="option-icon">📣</span>Marketing & Growth</button>
+          <button class="option-btn" onclick="selectOption(this,1,'field','Business & Strategy')"><span class="option-icon">🏢</span>Business & Strategy</button>
+          <button class="option-btn" onclick="selectOption(this,1,'field','Content & Writing')"><span class="option-icon">✍️</span>Content & Writing</button>
+        </div>
+        <div class="quiz-nav"><span class="step-counter">Step 2 of 4</span><button class="btn-primary" onclick="nextStep(2)" id="next-1" disabled>Continue →</button></div>
+      </div>
+      <!-- Step 3 -->
+      <div class="quiz-step" id="step-2">
+        <div class="quiz-q">How much time can you commit weekly?</div>
+        <div class="quiz-sub">Honest answers lead to better recommendations</div>
+        <div class="options-grid">
+          <button class="option-btn" onclick="selectOption(this,2,'time','1–3 hours per week')"><span class="option-icon">⏱️</span>1–3 hours/week</button>
+          <button class="option-btn" onclick="selectOption(this,2,'time','4–8 hours per week')"><span class="option-icon">📅</span>4–8 hours/week</button>
+          <button class="option-btn" onclick="selectOption(this,2,'time','8–15 hours per week')"><span class="option-icon">🗓️</span>8–15 hours/week</button>
+          <button class="option-btn" onclick="selectOption(this,2,'time','Full-time focus')"><span class="option-icon">🔥</span>Full-time focus</button>
+        </div>
+        <div class="quiz-nav"><span class="step-counter">Step 3 of 4</span><button class="btn-primary" onclick="nextStep(3)" id="next-2" disabled>Continue →</button></div>
+      </div>
+      <!-- Step 4 -->
+      <div class="quiz-step" id="step-3">
+        <div class="quiz-q">What's your current experience level?</div>
+        <div class="quiz-sub">There are no wrong answers here</div>
+        <div class="options-grid">
+          <button class="option-btn" onclick="selectOption(this,3,'level','Complete beginner')"><span class="option-icon">🌱</span>Total beginner</button>
+          <button class="option-btn" onclick="selectOption(this,3,'level','Some experience')"><span class="option-icon">🌿</span>Some experience</button>
+          <button class="option-btn" onclick="selectOption(this,3,'level','Intermediate')"><span class="option-icon">🌳</span>Intermediate</button>
+          <button class="option-btn" onclick="selectOption(this,3,'level','Advanced')"><span class="option-icon">🏔️</span>Advanced</button>
+        </div>
+        <div class="quiz-nav"><span class="step-counter">Step 4 of 4</span><button class="btn-primary" onclick="runAIRecommendation()" id="next-3" disabled>✨ Get AI Recommendations</button></div>
+      </div>
+      <!-- AI Loading -->
+      <div class="quiz-step" id="step-loading">
+        <div style="text-align:center;padding:3rem 1rem">
+          <div style="font-size:2.5rem;margin-bottom:1rem">🧠</div>
+          <div class="quiz-q" style="text-align:center">Analysing your profile<span class="loading-dots"></span></div>
+          <p style="color:var(--ink-soft);font-size:.88rem;margin-top:.5rem">Our AI is matching you with the best skills</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI RESULTS -->
+  <div class="section" id="ai-results-section" style="display:none">
+    <div class="section-label">Your AI Recommendations</div>
+    <div class="section-title">Matched for you ✦</div>
+    <div class="section-sub" id="ai-summary-text"></div>
+    <div class="filter-chips">
+      <button class="chip active" onclick="filterChip(this,'all')">All</button>
+      <button class="chip" onclick="filterChip(this,'beginner')">Beginner</button>
+      <button class="chip" onclick="filterChip(this,'intermediate')">Intermediate</button>
+      <button class="chip" onclick="filterChip(this,'high')">High Match</button>
+    </div>
+    <div class="results-grid" id="ai-results-grid"></div>
+    <div style="text-align:center;margin-top:2rem">
+      <button class="btn-secondary" onclick="retakeQuiz()">← Retake assessment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ EXPLORE PAGE ════════════════════ -->
+<div class="page" id="page-explore">
+  <div class="section">
+    <div class="section-label">Career Library</div>
+    <div class="filter-chips" style="margin-bottom:.8rem">
+      <button class="chip active" onclick="setExploreMode('skills',this)">Skills</button>
+      <button class="chip" onclick="setExploreMode('jobs',this)">Jobs</button>
+    </div>
+    <div class="section-title" id="explore-title">Explore all skills</div>
+    <div class="section-sub" id="explore-sub">Discover curated skills and enroll in your next learning path.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem">
+      <div class="search-bar">
+        <span style="color:var(--ink-mute);font-size:.9rem">Search</span>
+        <input type="text" placeholder="Search skills, topics, tools..." oninput="searchSkills(this.value)" id="explore-search"/>
+      </div>
+      <select id="sort-select" onchange="sortSkills()" style="padding:.6rem 1rem;border:1.5px solid var(--border);border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--ink);background:var(--cream);outline:none;cursor:pointer">
+        <option value="match">Sort: Best match</option>
+        <option value="alpha">Sort: A-Z</option>
+        <option value="duration">Sort: Duration</option>
+        <option value="difficulty">Sort: Easiest first</option>
+      </select>
+    </div>
+    <div class="filter-chips" id="explore-skill-filters">
+      <button class="chip active" onclick="filterExplore(this,'all')">All</button>
+      <button class="chip" onclick="filterExplore(this,'tech')">Tech</button>
+      <button class="chip" onclick="filterExplore(this,'design')">Design</button>
+      <button class="chip" onclick="filterExplore(this,'data')">Data</button>
+      <button class="chip" onclick="filterExplore(this,'marketing')">Marketing</button>
+      <button class="chip" onclick="filterExplore(this,'business')">Business</button>
+      <button class="chip" onclick="filterExplore(this,'creative')">Creative</button>
+    </div>
+    <div class="results-grid" id="explore-grid"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ PATHS PAGE ════════════════════ -->
+<div class="page" id="page-paths-page">
+  <div class="section">
+    <div class="section-label">Learning Paths</div>
+    <div class="section-title">Structured journeys, not just courses</div>
+    <div class="section-sub">Every path is a carefully sequenced roadmap from your first lesson to job-ready.</div>
+    <div class="paths-row" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">
+      <div class="path-card path-card-teal" onclick="openPathModal('ai')"><div class="path-emoji">🤖</div><div><h3>AI & Machine Learning</h3><p>Python → ML → Deep Learning → Production deployment. The most in-demand path of the decade.</p></div><div class="path-count">14 skills · 8–12 months</div></div>
+      <div class="path-card path-card-gold" onclick="openPathModal('design')"><div class="path-emoji">🎨</div><div><h3>Product Design</h3><p>Research → Wireframes → Figma → Portfolio. Build interfaces that get you hired.</p></div><div class="path-count">10 skills · 5–7 months</div></div>
+      <div class="path-card path-card-violet" onclick="openPathModal('data')"><div class="path-emoji">📊</div><div><h3>Data Analytics</h3><p>Excel → SQL → Python → Dashboards. Become the analyst every team wants.</p></div><div class="path-count">12 skills · 6–9 months</div></div>
+      <div class="path-card path-card-rose" onclick="openPathModal('marketing')"><div class="path-emoji">📣</div><div><h3>Growth Marketing</h3><p>SEO → Paid → Email → CRO. The complete modern marketing toolkit.</p></div><div class="path-count">9 skills · 4–6 months</div></div>
+      <div class="path-card path-card-gold" onclick="openPathModal('webdev')"><div class="path-emoji">🌐</div><div><h3>Full-Stack Web Dev</h3><p>HTML/CSS → JS → React → Node.js → Deploy. Build anything on the web.</p></div><div class="path-count">16 skills · 10–14 months</div></div>
+      <div class="path-card path-card-teal" onclick="openPathModal('pm')"><div class="path-emoji">🗺️</div><div><h3>Product Management</h3><p>Discovery → Roadmaps → Metrics → Stakeholders. Think like a PM, ship like one.</p></div><div class="path-count">11 skills · 6–8 months</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ AI ADVISOR PAGE ════════════════════ -->
+<div class="page" id="page-ai-advisor">
+  <div class="section">
+    <div class="section-label">AI Career Advisor</div>
+    <div class="section-title">Chat with your skill coach</div>
+    <div class="section-sub">Ask anything about skills, career paths, learning strategies, or job market trends.</div>
+    <div class="ai-chat-container">
+      <div class="chat-header">
+        <div class="ai-dot"></div>
+        <div><strong>SRS AI</strong><span style="display:block">Your personal career advisor</span></div>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg ai">👋 Hi! I'm your Skill Recommendation System AI advisor. Ask me anything — which skills to learn, how to break into a new field, how long something takes, salary expectations, or how to build a portfolio. What's on your mind?</div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Ask me anything about skills or career…" onkeydown="if(event.key==='Enter')sendChat()" />
+        <button class="chat-send" id="chat-send-btn" onclick="sendChat()">Send →</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem">
+      <button class="chip" onclick="quickChat('What skills are most in-demand in 2026?')">In-demand skills 2026</button>
+      <button class="chip" onclick="quickChat('How do I transition into data science from a non-tech background?')">Non-tech to data science</button>
+      <button class="chip" onclick="quickChat('What salary can I expect as a UX designer?')">UX designer salary</button>
+      <button class="chip" onclick="quickChat('How long to learn Python for data analysis?')">Python learning time</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ DASHBOARD PAGE ════════════════════ -->
+<div class="page" id="page-dashboard">
+  <div class="section">
+    <div class="dashboard-grid">
+      <div>
+        <div class="sidebar-card">
+          <div class="user-profile-big">
+            <div class="avatar-big" id="dash-avatar">JS</div>
+            <h3 id="dash-name">John Smith</h3>
+            <p id="dash-email">john@example.com</p>
+            <p style="margin-top:.5rem;font-size:.78rem;color:var(--gold-dark);font-weight:600">🏅 Rising Learner</p>
+          </div>
+          <div class="sidebar-nav">
+            <button class="sidebar-link active" onclick="dashTab(this,'enrolled')"><span class="sidebar-icon">📚</span>My Courses</button>
+            <button class="sidebar-link" onclick="dashTab(this,'insights')"><span class="sidebar-icon">📌</span>Insights</button>
+            <button class="sidebar-link" onclick="dashTab(this,'saved')"><span class="sidebar-icon">🔖</span>Saved Skills</button>
+            <button class="sidebar-link" onclick="dashTab(this,'activity')"><span class="sidebar-icon">⚡</span>Activity</button>
+            <button class="sidebar-link" onclick="dashTab(this,'settings')"><span class="sidebar-icon">⚙️</span>Settings</button>
+            <button class="sidebar-link" style="color:var(--rose);margin-top:.5rem" onclick="doLogout()"><span class="sidebar-icon">→</span>Sign out</button>
+          </div>
+        </div>
+      </div>
+      <div class="main-content">
+        <!-- Enrolled Tab -->
+        <div class="content-panel" id="dash-enrolled">
+          <h2>My Courses</h2>
+          <div id="enrolled-list">
+            <div class="empty-state"><div class="es-icon">📚</div><p>No courses yet.<br><a onclick="showPage('explore')" style="color:var(--gold);cursor:pointer;font-weight:500">Browse skills →</a></p></div>
+          </div>
+          <div class="planner-grid">
+            <div class="planner-card">
+              <h3>Weekly Learning Planner</h3>
+              <p id="planner-summary">Generate a realistic weekly plan based on your current commitments and enrolled courses.</p>
+              <div class="planner-actions">
+                <button class="chip" onclick="generateWeeklyPlan()">Generate Plan</button>
+                <button class="chip" onclick="generateWeeklyPlan(true)">Regenerate</button>
+              </div>
+              <div class="planner-list" id="planner-list">
+                <div class="empty-state" style="padding:1rem"><p>No plan yet. Generate one.</p></div>
+              </div>
+              <h3 style="font-size:.86rem;margin-top:.8rem;margin-bottom:.35rem">Daily Study Breakdown</h3>
+              <div class="planner-list" id="daily-study-list">
+                <div class="empty-state" style="padding:1rem"><p>Generate a weekly plan to view daily tasks.</p></div>
+              </div>
+            </div>
+            <div class="planner-card">
+              <h3>Skill Gap Analyzer</h3>
+              <p>Select your target role to see missing capabilities and fast-track skills to close the gap.</p>
+              <div style="margin-bottom:.65rem">
+                <select id="gap-role-select" onchange="analyzeSkillGap(this.value)" style="width:100%;padding:.55rem .75rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--ink);background:#fff;outline:none">
+                  <option value="data_analyst">Data Analyst</option>
+                  <option value="frontend_developer">Frontend Developer</option>
+                  <option value="product_designer">Product Designer</option>
+                  <option value="growth_marketer">Growth Marketer</option>
+                  <option value="ml_engineer">ML Engineer</option>
+                </select>
+              </div>
+              <div id="gap-analysis">
+                <div class="empty-state" style="padding:1rem"><p>Choose a role to analyze your gap.</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="planner-grid" style="margin-top:1rem">
+            <div class="planner-card">
+              <h3>Today's Focus</h3>
+              <p id="today-focus-summary">Complete your assessment and enroll in at least one course to get a daily focus task.</p>
+              <div class="planner-list" id="today-focus-list">
+                <div class="empty-state" style="padding:1rem"><p>No focus task yet.</p></div>
+              </div>
+            </div>
+            <div class="planner-card">
+              <h3>Goal ETA Tracker</h3>
+              <p id="goal-eta-summary">Enroll in courses to estimate your goal completion timeline.</p>
+              <div class="planner-list" id="risk-alert-list">
+                <div class="empty-state" style="padding:1rem"><p>No learning risk alerts.</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Insights Tab -->
+        <div class="content-panel" id="dash-insights" style="display:none">
+          <h2>Learning Insights</h2>
+          <div class="insight-metrics" id="insight-metrics"></div>
+          <h3 style="font-size:.94rem;margin-bottom:.6rem">Recommendation History</h3>
+          <div class="history-list" id="recommendation-history-list">
+            <div class="empty-state" style="padding:1rem"><p>No recommendation history yet. Complete the assessment to generate insights.</p></div>
+          </div>
+        </div>
+        <!-- Saved Tab -->
+        <div class="content-panel" id="dash-saved" style="display:none">
+          <h2>Saved Skills</h2>
+          <div class="saved-grid" id="saved-list">
+            <div class="empty-state"><div class="es-icon">🔖</div><p>Nothing saved yet.<br><a onclick="showPage('explore')" style="color:var(--gold);cursor:pointer;font-weight:500">Explore skills →</a></p></div>
+          </div>
+        </div>
+        <!-- Activity Tab -->
+        <div class="content-panel" id="dash-activity" style="display:none">
+          <h2>Recent Activity</h2>
+          <div class="activity-list" id="activity-list">
+            <div class="empty-state"><div class="es-icon">⚡</div><p>No activity yet.</p></div>
+          </div>
+        </div>
+        <!-- Settings Tab -->
+        <div class="content-panel" id="dash-settings" style="display:none">
+          <h2>Account Settings</h2>
+          <div class="form-group" style="margin-bottom:1rem"><label>Full name</label><input type="text" id="settings-name" style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:.9rem;background:var(--cream);color:var(--ink);outline:none" /></div>
+          <div class="form-group" style="margin-bottom:1rem"><label>Email</label><input type="email" id="settings-email" readonly style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:.9rem;background:var(--cream);color:var(--ink);outline:none" /></div>
+          <div class="form-group" style="margin-bottom:1.25rem"><label>Learning goal</label>
+            <select id="settings-goal" style="width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:.9rem;background:var(--cream);color:var(--ink);outline:none">
+              <option>Switch careers</option><option>Get promoted</option><option>Build a startup</option><option>Go freelance</option><option>Personal curiosity</option><option>Generate side income</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="saveSettings()">Save changes →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Skill <span>Recommendation</span> System</div>
+  <p>© 2026 Skill Recommendation System. Built to make career growth personal.</p>
+  <div class="footer-links">
+    <a>Privacy</a><a>Terms</a><a onclick="showPage('ai-advisor')">AI Advisor</a><a onclick="showPage('explore')">Explore</a>
+  </div>
+</footer>
+
+<script src="/js/data.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
+
+
+
+
+
+
