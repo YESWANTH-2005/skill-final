@@ -298,13 +298,13 @@ footer p{font-size:.8rem;color:var(--ink-mute)}
     <div id="auth-login">
       <div class="form-group"><label>Email address</label><input type="email" id="login-email" placeholder="you@example.com" /></div>
       <div class="form-group"><label>Password</label><input type="password" id="login-pw" placeholder="••••••••" /></div>
-      <button class="auth-submit" onclick="doLogin()">Sign in →</button>
+      <button class="auth-submit" id="login-submit-btn" onclick="doLogin()">Sign in →</button>
     </div>
     <div id="auth-signup" style="display:none">
       <div class="form-group"><label>Full name</label><input type="text" id="signup-name" placeholder="Your name" /></div>
       <div class="form-group"><label>Email address</label><input type="email" id="signup-email" placeholder="you@example.com" /></div>
       <div class="form-group"><label>Password</label><input type="password" id="signup-pw" placeholder="Create a password" /></div>
-      <button class="auth-submit" onclick="doSignup()">Create account →</button>
+      <button class="auth-submit" id="signup-submit-btn" onclick="doSignup()">Create account →</button>
     </div>
   </div>
 </div>

@@ -701,44 +701,140 @@ function requireAuth(page) {
 function openAuth(mode) {
   switchAuth(mode);
   document.getElementById('auth-overlay').classList.add('open');
+  renderAuthSubmitState();
 }
 function closeAuth() { document.getElementById('auth-overlay').classList.remove('open'); }
 function switchAuth(mode) {
   document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&mode==='login')||(i===1&&mode==='signup')));
   document.getElementById('auth-login').style.display = mode==='login'?'block':'none';
   document.getElementById('auth-signup').style.display = mode==='signup'?'block':'none';
+  renderAuthSubmitState();
 }
+const AUTH_COOLDOWN_MS = 30000;
+let authRequestInFlight = false;
+let authCooldownUntil = 0;
+let authCooldownTimer = null;
+
+function getAuthSubmitButtons() {
+  return {
+    loginBtn: document.getElementById("login-submit-btn"),
+    signupBtn: document.getElementById("signup-submit-btn")
+  };
+}
+
+function getAuthCooldownSecondsRemaining() {
+  return Math.ceil(Math.max(0, authCooldownUntil - Date.now()) / 1000);
+}
+
+function renderAuthSubmitState() {
+  const { loginBtn, signupBtn } = getAuthSubmitButtons();
+  const isCoolingDown = Date.now() < authCooldownUntil;
+  const isDisabled = authRequestInFlight || isCoolingDown;
+  const secondsRemaining = getAuthCooldownSecondsRemaining();
+
+  if (loginBtn) {
+    loginBtn.disabled = isDisabled;
+    loginBtn.textContent = isCoolingDown
+      ? `Try again in ${secondsRemaining}s`
+      : authRequestInFlight
+        ? "Please wait..."
+        : "Sign in →";
+  }
+
+  if (signupBtn) {
+    signupBtn.disabled = isDisabled;
+    signupBtn.textContent = isCoolingDown
+      ? `Try again in ${secondsRemaining}s`
+      : authRequestInFlight
+        ? "Please wait..."
+        : "Create account →";
+  }
+}
+
+function setAuthRequestState(isInFlight) {
+  authRequestInFlight = isInFlight;
+  renderAuthSubmitState();
+}
+
+function startAuthCooldown(durationMs = AUTH_COOLDOWN_MS) {
+  authCooldownUntil = Date.now() + Math.max(0, durationMs);
+
+  if (authCooldownTimer) {
+    clearInterval(authCooldownTimer);
+  }
+
+  renderAuthSubmitState();
+  authCooldownTimer = setInterval(() => {
+    if (Date.now() >= authCooldownUntil) {
+      authCooldownUntil = 0;
+      clearInterval(authCooldownTimer);
+      authCooldownTimer = null;
+    }
+    renderAuthSubmitState();
+  }, 500);
+}
+
 async function doLogin() {
+  if (authRequestInFlight) return;
+  if (Date.now() < authCooldownUntil) {
+    showToast(`Too many attempts. Try again in ${getAuthCooldownSecondsRemaining()}s.`, "error");
+    renderAuthSubmitState();
+    return;
+  }
+
   const email = document.getElementById('login-email').value.trim();
   const pw = document.getElementById('login-pw').value;
   if (!email || !pw) { showToast('Please fill in all fields','error'); return; }
   if (!isValidEmail(email)) { showToast('Please enter a valid email','error'); return; }
+  setAuthRequestState(true);
   try {
     const auth = await postJSON("/api/auth/login", { email, password: pw });
     await loginUser(auth, false);
     closeAuth();
   } catch (error) {
+    if (error.status === 429) {
+      startAuthCooldown();
+      showToast(`Too many attempts. Try again in ${Math.ceil(AUTH_COOLDOWN_MS / 1000)}s.`, "error");
+      return;
+    }
     const msg = /failed to fetch/i.test(String(error.message || ""))
       ? "Cannot reach backend. Start backend on port 4000 and check CORS_ORIGIN."
       : error.message || "Sign in failed.";
     showToast(msg, "error");
+  } finally {
+    setAuthRequestState(false);
   }
 }
 async function doSignup() {
+  if (authRequestInFlight) return;
+  if (Date.now() < authCooldownUntil) {
+    showToast(`Too many attempts. Try again in ${getAuthCooldownSecondsRemaining()}s.`, "error");
+    renderAuthSubmitState();
+    return;
+  }
+
   const name = document.getElementById('signup-name').value.trim();
   const email = document.getElementById('signup-email').value.trim();
   const pw = document.getElementById('signup-pw').value;
   if (!name || !email || !pw) { showToast('Please fill in all fields','error'); return; }
   if (!isValidEmail(email)) { showToast('Please enter a valid email','error'); return; }
+  setAuthRequestState(true);
   try {
     const auth = await postJSON("/api/auth/signup", { name, email, password: pw });
     await loginUser(auth, true);
     closeAuth();
   } catch (error) {
+    if (error.status === 429) {
+      startAuthCooldown();
+      showToast(`Too many attempts. Try again in ${Math.ceil(AUTH_COOLDOWN_MS / 1000)}s.`, "error");
+      return;
+    }
     const msg = /failed to fetch/i.test(String(error.message || ""))
       ? "Cannot reach backend. Start backend on port 4000 and check CORS_ORIGIN."
       : error.message || "Account creation failed.";
     showToast(msg, "error");
+  } finally {
+    setAuthRequestState(false);
   }
 }
 async function loginUser(authPayload, isSignup = false) {
@@ -1979,6 +2075,7 @@ function showToast(msg, type='') {
 renderExplore();
 
 bootstrapSession();
+renderAuthSubmitState();
 
 
 
