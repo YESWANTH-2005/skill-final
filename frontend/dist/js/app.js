@@ -826,8 +826,8 @@ async function doLogin() {
       showToast(`Too many attempts. Try again in ${Math.ceil(AUTH_COOLDOWN_MS / 1000)}s.`, "error");
       return;
     }
-    const msg = /failed to fetch/i.test(String(error.message || ""))
-      ? "Cannot reach backend. Start backend on port 4000 and check CORS_ORIGIN."
+    const msg = /failed to fetch|timed out/i.test(String(error.message || ""))
+      ? "Cannot reach backend service. Please verify Render service status and CORS_ORIGIN."
       : error.message || "Sign in failed.";
     showToast(msg, "error");
   } finally {
@@ -858,8 +858,8 @@ async function doSignup() {
       showToast(`Too many attempts. Try again in ${Math.ceil(AUTH_COOLDOWN_MS / 1000)}s.`, "error");
       return;
     }
-    const msg = /failed to fetch/i.test(String(error.message || ""))
-      ? "Cannot reach backend. Start backend on port 4000 and check CORS_ORIGIN."
+    const msg = /failed to fetch|timed out/i.test(String(error.message || ""))
+      ? "Cannot reach backend service. Please verify Render service status and CORS_ORIGIN."
       : error.message || "Account creation failed.";
     showToast(msg, "error");
   } finally {
